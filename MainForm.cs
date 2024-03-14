@@ -1,4 +1,4 @@
-namespace imla_tool;
+namespace imlatool;
 
 public partial class MainForm : Form
 {
