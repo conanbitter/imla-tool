@@ -1,5 +1,3 @@
-using System.Security.Cryptography.Xml;
-
 namespace imlatool;
 
 struct CornerMask
