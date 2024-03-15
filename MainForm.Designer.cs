@@ -2,6 +2,7 @@
 
 partial class MainForm
 {
+    private LabelEditor leEditor;
     private Panel pToolBox;
     private Button bCameraReset;
 
@@ -13,6 +14,10 @@ partial class MainForm
         this.StartPosition = FormStartPosition.CenterScreen;
         this.Text = "ImLa Tool";
         this.Name = "ImLa Tool";
+
+        leEditor = new LabelEditor();
+        leEditor.Dock = DockStyle.Fill;
+        this.Controls.Add(leEditor);
 
         pToolBox = new Panel();
         pToolBox.Size = new Size(200, 100);
