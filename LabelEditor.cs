@@ -47,27 +47,18 @@ struct Rect
     public readonly CornerMask GetCornerMask(int x, int y)
     {
         CornerMask result;
-        result.x1 = (x >= p1.x - border) && (x <= p2.x - border);
-        result.x2 = (x >= p1.x + border) && (x <= p2.x + border);
-        result.y1 = (y >= p1.y - border) && (y <= p2.y - border);
-        result.y2 = (y >= p1.y + border) && (y <= p2.y + border);
-        result.x1 = result.x1 && (result.y1 || result.y2);
-        result.x2 = result.x2 && (result.y1 || result.y2);
-        result.y1 = result.y1 && (result.x1 || result.x2);
-        result.y2 = result.y2 && (result.x1 || result.x2);
-        if (!(result.x1 && result.x2 && result.y1 && result.y2))
+        result.x1 = (x >= p1.x - border) && (x <= p1.x + border) && (y >= p1.y - border) && (y <= p2.y + border);
+        result.x2 = (x >= p2.x - border) && (x <= p2.x + border) && (y >= p1.y - border) && (y <= p2.y + border);
+        result.y1 = (y >= p1.y - border) && (y <= p1.y + border) && (x >= p1.x - border) && (x <= p2.x + border);
+        result.y2 = (y >= p2.y - border) && (y <= p2.y + border) && (x >= p1.x - border) && (x <= p2.x + border);
+        if ((x > p1.x + border) && (x < p2.x - border) && (y > p1.y + border) && (y < p2.y - border))
         {
-            if (result.x1 && result.x2)
-            {
-                result.x1 = false;
-                result.x2 = false;
-            }
-            if (result.y1 && result.y2)
-            {
-                result.y1 = false;
-                result.y2 = false;
-            }
+            result.x1 = true;
+            result.x2 = true;
+            result.y1 = true;
+            result.y2 = true;
         }
+
         return result;
     }
 
