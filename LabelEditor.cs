@@ -181,15 +181,21 @@ class LabelEditor : Control
                 {
                     for (int i = 0; i < rects.Count; i++)
                     {
-                        if (i == highlighted)
+                        /*if (i == highlighted)
                         {
                             pen.Width = 3;
                         }
                         else
                         {
                             pen.Width = 1;
-                        }
+                        }*/
                         DrawRect(rects[i].rect, e);
+                    }
+                    if (highlighted >= 0)
+                    {
+                        pen.Width = 3;
+                        DrawRect(rects[highlighted].rect, e);
+                        pen.Width = 1;
                     }
                     /*pen.Width = 3;
                     foreach (int index in hoverlist)
