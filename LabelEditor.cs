@@ -1,3 +1,4 @@
+
 namespace imlatool;
 
 struct CornerMask
@@ -78,17 +79,31 @@ struct Rect
     }
 }
 
+enum EditorMode
+{
+    Create,
+    Hover,
+    Edit
+}
+
 class LabelEditor : Control
 {
     private Pen pen = new(Color.Red);
     private SolidBrush brush = new(Color.FromArgb(75, Color.Red));
     private Rect rc;
-    //dragging
+    private EditorMode mode = EditorMode.Create;
+    private Vec2D cur;
+    //Edit:Dragging
     private bool isDragging = false;
     private int oldX;
     private int oldY;
     private CornerMask mask;
     private Rect tempRect;
+    //Create
+    private bool isFirstPoint = true;
+    private bool showCross = true;
+    private Vec2D p1;
+    private Vec2D p2;
 
     public LabelEditor()
     {
@@ -105,38 +120,105 @@ class LabelEditor : Control
         e.Graphics.DrawRectangle(pen, rect.p1.x, rect.p1.y, rect.p2.x - rect.p1.x, rect.p2.y - rect.p1.y);
     }
 
+    private void DrawCross(Vec2D point, PaintEventArgs e)
+    {
+        e.Graphics.DrawLine(pen, point.x, e.ClipRectangle.Top, point.x, e.ClipRectangle.Bottom);
+        e.Graphics.DrawLine(pen, e.ClipRectangle.Left, point.y, e.ClipRectangle.Right, point.y);
+        e.Graphics.DrawEllipse(pen, point.x - 3, point.y - 3, 6, 6);
+    }
+
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e);
         e.Graphics.Clear(Color.Black);
-        if (isDragging)
+        switch (mode)
         {
-            DrawRect(tempRect, e);
+            case EditorMode.Create:
+                {
+                    DrawRect(rc, e);
+                    if (isFirstPoint)
+                    {
+                        if (showCross) DrawCross(p1, e);
+                    }
+                    else
+                    {
+                        if (showCross) DrawCross(p2, e);
+                        DrawRect(tempRect, e);
+                    }
+                    break;
+                }
+            case EditorMode.Hover:
+                {
+
+                }
+                break;
+            case EditorMode.Edit:
+                {
+                    if (isDragging)
+                    {
+                        DrawRect(tempRect, e);
+                    }
+                    else
+                    {
+                        DrawRect(rc, e);
+                    }
+                }
+                break;
         }
-        else
-        {
-            DrawRect(rc, e);
-        }
+
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
-        if (isDragging)
+        switch (mode)
         {
-            tempRect = rc.Move(new Vec2D(e.X - oldX, e.Y - oldY), mask);
-            Invalidate();
-        }
-        else
-        {
-            Cursor = rc.GetCornerMask(e.X, e.Y).GetCursor();
+            case EditorMode.Create:
+                {
+                    if (isFirstPoint)
+                    {
+                        p1.x = e.X;
+                        p1.y = e.Y;
+                    }
+                    else
+                    {
+                        p2.x = e.X;
+                        p2.y = e.Y;
+
+                        tempRect.p1 = p1;
+                        tempRect.p2 = p2;
+                        tempRect.FixCorners();
+                    }
+                    Invalidate();
+                }
+                break;
+            case EditorMode.Hover:
+                {
+                    cur.x = e.X;
+                    cur.y = e.Y;
+                }
+                break;
+            case EditorMode.Edit:
+                {
+                    if (isDragging)
+                    {
+                        tempRect = rc.Move(new Vec2D(e.X - oldX, e.Y - oldY), mask);
+                        Invalidate();
+                    }
+                    else
+                    {
+                        Cursor = rc.GetCornerMask(e.X, e.Y).GetCursor();
+                    }
+                }
+                break;
+
         }
     }
 
     protected override void OnMouseDown(MouseEventArgs e)
     {
         base.OnMouseDown(e);
-        if (e.Button == MouseButtons.Left)
+        if (e.Button == MouseButtons.Left && mode == EditorMode.Edit)
         {
             mask = rc.GetCornerMask(e.X, e.Y);
             if (mask.IsNotEmpty())
@@ -152,10 +234,46 @@ class LabelEditor : Control
     protected override void OnMouseUp(MouseEventArgs e)
     {
         base.OnMouseUp(e);
-        if (e.Button == MouseButtons.Left)
+        if (e.Button == MouseButtons.Left && mode == EditorMode.Edit)
         {
             isDragging = false;
             rc = tempRect;
+        }
+    }
+
+    protected override void OnMouseClick(MouseEventArgs e)
+    {
+        base.OnMouseClick(e);
+        if (e.Button == MouseButtons.Left && mode == EditorMode.Create)
+        {
+            if (isFirstPoint)
+            {
+                isFirstPoint = false;
+            }
+            else
+            {
+                isFirstPoint = true;
+            }
+        }
+    }
+
+    protected override void OnMouseLeave(EventArgs e)
+    {
+        base.OnMouseLeave(e);
+        if (mode == EditorMode.Create)
+        {
+            showCross = false;
+            Invalidate();
+        }
+    }
+
+    protected override void OnMouseEnter(EventArgs e)
+    {
+        base.OnMouseEnter(e);
+        if (mode == EditorMode.Create)
+        {
+            showCross = true;
+            Invalidate();
         }
     }
 }
