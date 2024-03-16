@@ -77,6 +77,21 @@ struct Rect
         if (p1.x > p2.x) (p1.x, p2.x) = (p2.x, p1.x);
         if (p1.y > p2.y) (p1.y, p2.y) = (p2.y, p1.y);
     }
+
+    public bool IsInside(float x, float y)
+    {
+        return (x >= p1.x) && (x <= p2.x) && (y >= p1.y) && (y <= p2.y);
+    }
+}
+
+class LabelRect
+{
+    public Rect rect;
+
+    public LabelRect(Rect rect)
+    {
+        this.rect = rect;
+    }
 }
 
 enum EditorMode
@@ -91,7 +106,7 @@ class LabelEditor : Control
     private Pen pen = new(Color.Red);
     private SolidBrush brush = new(Color.FromArgb(75, Color.Red));
     private Rect rc;
-    private EditorMode mode = EditorMode.Create;
+    private EditorMode mode = EditorMode.Hover;
     private Vec2D cur;
     //Edit:Dragging
     private bool isDragging = false;
@@ -104,6 +119,12 @@ class LabelEditor : Control
     private bool showCross = true;
     private Vec2D p1;
     private Vec2D p2;
+    //Hover
+    private int highlighted = -1;
+    private List<int> hoverlist = new();
+    private bool fixHighlight = false;
+
+    private List<LabelRect> rects = new();
 
     public LabelEditor()
     {
@@ -112,6 +133,12 @@ class LabelEditor : Control
         rc.p1.y = 50.0f;
         rc.p2.x = 400.0f;
         rc.p2.y = 250.0f;
+    }
+
+    public void CreateNew()
+    {
+        mode = EditorMode.Create;
+        isFirstPoint = true;
     }
 
     private void DrawRect(Rect rect, PaintEventArgs e)
@@ -135,7 +162,10 @@ class LabelEditor : Control
         {
             case EditorMode.Create:
                 {
-                    DrawRect(rc, e);
+                    foreach (LabelRect r in rects)
+                    {
+                        DrawRect(r.rect, e);
+                    }
                     if (isFirstPoint)
                     {
                         if (showCross) DrawCross(p1, e);
@@ -149,7 +179,24 @@ class LabelEditor : Control
                 }
             case EditorMode.Hover:
                 {
-
+                    for (int i = 0; i < rects.Count; i++)
+                    {
+                        if (i == highlighted)
+                        {
+                            pen.Width = 3;
+                        }
+                        else
+                        {
+                            pen.Width = 1;
+                        }
+                        DrawRect(rects[i].rect, e);
+                    }
+                    /*pen.Width = 3;
+                    foreach (int index in hoverlist)
+                    {
+                        DrawRect(rects[index].rect, e);
+                    }
+                    pen.Width = 1;*/
                 }
                 break;
             case EditorMode.Edit:
@@ -196,6 +243,35 @@ class LabelEditor : Control
                 {
                     cur.x = e.X;
                     cur.y = e.Y;
+                    hoverlist.Clear();
+                    for (int i = 0; i < rects.Count; i++)
+                    {
+                        if (rects[i].rect.IsInside(e.X, e.Y))
+                        {
+                            //highlighted = i;
+                            //break;
+                            hoverlist.Add(i);
+                        }
+                    }
+                    /*if(!fixHighlight){
+                        highlighted = -1;
+                    }*/
+                    if (fixHighlight && highlighted >= 0 && !rects[highlighted].rect.IsInside(e.X, e.Y))
+                    {
+                        fixHighlight = false;
+                    }
+                    if (hoverlist.Count > 0)
+                    {
+                        if (!fixHighlight)
+                        {
+                            highlighted = hoverlist[hoverlist.Count - 1];
+                        }
+                    }
+                    else
+                    {
+                        highlighted = -1;
+                    }
+                    Invalidate();
                 }
                 break;
             case EditorMode.Edit:
@@ -252,7 +328,9 @@ class LabelEditor : Control
             }
             else
             {
-                isFirstPoint = true;
+                rects.Add(new LabelRect(tempRect));
+                mode = EditorMode.Hover;
+                Invalidate();
             }
         }
     }
@@ -273,6 +351,35 @@ class LabelEditor : Control
         if (mode == EditorMode.Create)
         {
             showCross = true;
+            Invalidate();
+        }
+    }
+
+    protected override void OnMouseWheel(MouseEventArgs e)
+    {
+        base.OnMouseWheel(e);
+        if (mode == EditorMode.Hover
+            && ((ModifierKeys & Keys.Control) == Keys.Control)
+            && highlighted >= 0
+            && hoverlist.Count > 0)
+        {
+            int currentIndex = hoverlist.FindIndex(item => item == highlighted);
+            int found = currentIndex;
+            if (e.Delta > 0)
+            {
+                currentIndex = (currentIndex + 1) % hoverlist.Count;
+            }
+            else
+            {
+                currentIndex--;
+                if (currentIndex < 0) currentIndex += hoverlist.Count;
+            }
+            fixHighlight = true;
+            highlighted = hoverlist[currentIndex];
+            if (Parent != null)
+            {
+                ((MainForm)Parent).DebugData(string.Format("Found:{0} Next:{1}", found, currentIndex));
+            }
             Invalidate();
         }
     }

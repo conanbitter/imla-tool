@@ -6,4 +6,9 @@ public partial class MainForm : Form
     {
         InitializeComponent();
     }
+
+    public void DebugData(string data)
+    {
+        Text = data;
+    }
 }

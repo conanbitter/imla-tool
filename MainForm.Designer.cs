@@ -28,6 +28,7 @@ partial class MainForm
         bCameraReset.Size = new Size(100, 40);
         bCameraReset.Location = new Point(30, 30);
         bCameraReset.Text = "Reset View";
+        bCameraReset.Click += (object sender, System.EventArgs e) => leEditor.CreateNew();
         pToolBox.Controls.Add(bCameraReset);
 
         this.ResumeLayout();
