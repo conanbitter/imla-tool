@@ -105,15 +105,15 @@ class LabelEditor : Control
 {
     private Pen pen = new(Color.Red);
     private SolidBrush brush = new(Color.FromArgb(75, Color.Red));
-    private Rect rc;
     private EditorMode mode = EditorMode.Hover;
     private Vec2D cur;
-    //Edit:Dragging
+    //Edit
     private bool isDragging = false;
     private int oldX;
     private int oldY;
     private CornerMask mask;
     private Rect tempRect;
+    private int selected;
     //Create
     private bool isFirstPoint = true;
     private bool showCross = true;
@@ -129,10 +129,6 @@ class LabelEditor : Control
     public LabelEditor()
     {
         DoubleBuffered = true;
-        rc.p1.x = 100.0f;
-        rc.p1.y = 50.0f;
-        rc.p2.x = 400.0f;
-        rc.p2.y = 250.0f;
     }
 
     public void CreateNew()
@@ -141,9 +137,9 @@ class LabelEditor : Control
         isFirstPoint = true;
     }
 
-    private void DrawRect(Rect rect, PaintEventArgs e)
+    private void DrawRect(Rect rect, PaintEventArgs e, bool fill = true)
     {
-        e.Graphics.FillRectangle(brush, rect.p1.x, rect.p1.y, rect.p2.x - rect.p1.x, rect.p2.y - rect.p1.y);
+        if (fill) e.Graphics.FillRectangle(brush, rect.p1.x, rect.p1.y, rect.p2.x - rect.p1.x, rect.p2.y - rect.p1.y);
         e.Graphics.DrawRectangle(pen, rect.p1.x, rect.p1.y, rect.p2.x - rect.p1.x, rect.p2.y - rect.p1.y);
     }
 
@@ -207,13 +203,21 @@ class LabelEditor : Control
                 break;
             case EditorMode.Edit:
                 {
+                    for (int i = 0; i < rects.Count; i++)
+                    {
+                        if (i != selected)
+                        {
+                            DrawRect(rects[i].rect, e);
+                        }
+
+                    }
                     if (isDragging)
                     {
-                        DrawRect(tempRect, e);
+                        DrawRect(tempRect, e, false);
                     }
                     else
                     {
-                        DrawRect(rc, e);
+                        DrawRect(rects[selected].rect, e, false);
                     }
                 }
                 break;
@@ -284,12 +288,12 @@ class LabelEditor : Control
                 {
                     if (isDragging)
                     {
-                        tempRect = rc.Move(new Vec2D(e.X - oldX, e.Y - oldY), mask);
+                        tempRect = rects[selected].rect.Move(new Vec2D(e.X - oldX, e.Y - oldY), mask);
                         Invalidate();
                     }
                     else
                     {
-                        Cursor = rc.GetCornerMask(e.X, e.Y).GetCursor();
+                        Cursor = rects[selected].rect.GetCornerMask(e.X, e.Y).GetCursor();
                     }
                 }
                 break;
@@ -300,15 +304,49 @@ class LabelEditor : Control
     protected override void OnMouseDown(MouseEventArgs e)
     {
         base.OnMouseDown(e);
-        if (e.Button == MouseButtons.Left && mode == EditorMode.Edit)
+        if (e.Button == MouseButtons.Left)
         {
-            mask = rc.GetCornerMask(e.X, e.Y);
-            if (mask.IsNotEmpty())
+            switch (mode)
             {
-                isDragging = true;
-                oldX = e.X;
-                oldY = e.Y;
-                tempRect = rc;
+                case EditorMode.Create:
+                    {
+                        if (isFirstPoint)
+                        {
+                            isFirstPoint = false;
+                        }
+                        else
+                        {
+                            rects.Add(new LabelRect(tempRect));
+                            mode = EditorMode.Hover;
+                            Invalidate();
+                        }
+                    }
+                    break;
+                case EditorMode.Hover:
+                    {
+                        selected = highlighted;
+                        mode = EditorMode.Edit;
+                        Invalidate();
+                    }
+                    break;
+                case EditorMode.Edit:
+                    {
+                        mask = rects[selected].rect.GetCornerMask(e.X, e.Y);
+                        if (mask.IsNotEmpty())
+                        {
+                            isDragging = true;
+                            oldX = e.X;
+                            oldY = e.Y;
+                            tempRect = rects[selected].rect;
+                        }
+                        else
+                        {
+                            mode = EditorMode.Hover;
+                            highlighted = -1;
+                            Invalidate();
+                        }
+                    }
+                    break;
             }
         }
     }
@@ -316,28 +354,10 @@ class LabelEditor : Control
     protected override void OnMouseUp(MouseEventArgs e)
     {
         base.OnMouseUp(e);
-        if (e.Button == MouseButtons.Left && mode == EditorMode.Edit)
+        if (e.Button == MouseButtons.Left && mode == EditorMode.Edit && isDragging)
         {
             isDragging = false;
-            rc = tempRect;
-        }
-    }
-
-    protected override void OnMouseClick(MouseEventArgs e)
-    {
-        base.OnMouseClick(e);
-        if (e.Button == MouseButtons.Left && mode == EditorMode.Create)
-        {
-            if (isFirstPoint)
-            {
-                isFirstPoint = false;
-            }
-            else
-            {
-                rects.Add(new LabelRect(tempRect));
-                mode = EditorMode.Hover;
-                Invalidate();
-            }
+            rects[selected].rect = tempRect;
         }
     }
 
