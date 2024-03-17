@@ -7,10 +7,10 @@ class Camera
 
     private const float zoomSpeed = 1.1f;
 
-    private void AdjustOffset(Vec2D center, float k)
+    private void AdjustOffset(Vec2D center, float ds)
     {
-        offset.x = center.x * (1.0f - k) + offset.x * k;
-        offset.y = center.y * (1.0f - k) + offset.y * k;
+        offset.x += center.x * scale * (1 - ds);
+        offset.y += center.y * scale * (1 - ds);
     }
 
     public void Zoom(int step, Vec2D center)
@@ -24,8 +24,8 @@ class Camera
         {
             ds = 1 / zoomSpeed;
         }
-        scale *= ds;
         AdjustOffset(center, ds);
+        scale *= ds;
     }
 
     public Vec2D WorldToScreen(Vec2D point)
