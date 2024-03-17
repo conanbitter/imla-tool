@@ -34,6 +34,12 @@ struct Vec2D
         this.x = x;
         this.y = y;
     }
+
+    public Vec2D(float x, float y)
+    {
+        this.x = x;
+        this.y = y;
+    }
 }
 
 struct Rect
@@ -123,8 +129,15 @@ class LabelEditor : Control
     private int highlighted = -1;
     private List<int> hoverlist = new();
     private bool fixHighlight = false;
+    //Camera
+    private Camera camera = new();
+    private int camOldX;
+    private int camOldY;
+    private Vec2D oldOffset;
+    private bool isPanning;
 
     private List<LabelRect> rects = new();
+
 
     public LabelEditor()
     {
@@ -138,8 +151,10 @@ class LabelEditor : Control
 
     private void DrawRect(Rect rect, PaintEventArgs e, bool fill = true)
     {
-        if (fill) e.Graphics.FillRectangle(brush, rect.p1.x, rect.p1.y, rect.p2.x - rect.p1.x, rect.p2.y - rect.p1.y);
-        e.Graphics.DrawRectangle(pen, rect.p1.x, rect.p1.y, rect.p2.x - rect.p1.x, rect.p2.y - rect.p1.y);
+        Vec2D p1 = camera.WorldToScreen(rect.p1);
+        Vec2D p2 = camera.WorldToScreen(rect.p2);
+        if (fill) e.Graphics.FillRectangle(brush, p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+        e.Graphics.DrawRectangle(pen, p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
     }
 
     private void DrawCross(Vec2D point, PaintEventArgs e)
@@ -254,6 +269,7 @@ class LabelEditor : Control
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
+        bool needsInvalidation = false;
         switch (mode)
         {
             case EditorMode.Create:
@@ -272,7 +288,7 @@ class LabelEditor : Control
                         tempRect.p2 = p2;
                         tempRect.FixCorners();
                     }
-                    Invalidate();
+                    needsInvalidation = true;
                 }
                 break;
             case EditorMode.Hover:
@@ -307,7 +323,7 @@ class LabelEditor : Control
                     {
                         highlighted = -1;
                     }
-                    Invalidate();
+                    needsInvalidation = true;
                 }
                 break;
             case EditorMode.Edit:
@@ -315,7 +331,7 @@ class LabelEditor : Control
                     if (isDragging)
                     {
                         tempRect = rects[selected].rect.Move(new Vec2D(e.X - oldX, e.Y - oldY), mask);
-                        Invalidate();
+                        needsInvalidation = true;
                     }
                     else
                     {
@@ -324,6 +340,17 @@ class LabelEditor : Control
                 }
                 break;
 
+        }
+        if (isPanning)
+        {
+            camera.offset.x = oldOffset.x + e.X - camOldX;
+            camera.offset.y = oldOffset.y + e.Y - camOldY;
+            needsInvalidation = true;
+            //MessageBox.Show("drf");
+        }
+        if (needsInvalidation)
+        {
+            Invalidate();
         }
     }
 
@@ -373,6 +400,13 @@ class LabelEditor : Control
                     break;
             }
         }
+        if (e.Button == MouseButtons.Right)
+        {
+            isPanning = true;
+            oldOffset = camera.offset;
+            camOldX = e.X;
+            camOldY = e.Y;
+        }
     }
 
     protected override void OnMouseUp(MouseEventArgs e)
@@ -382,6 +416,10 @@ class LabelEditor : Control
         {
             isDragging = false;
             rects[selected].rect = tempRect;
+        }
+        if (e.Button == MouseButtons.Right)
+        {
+            isPanning = false;
         }
     }
 
@@ -408,28 +446,33 @@ class LabelEditor : Control
     protected override void OnMouseWheel(MouseEventArgs e)
     {
         base.OnMouseWheel(e);
-        if (mode == EditorMode.Hover
-            && ((ModifierKeys & Keys.Control) == Keys.Control)
-            && highlighted >= 0
-            && hoverlist.Count > 0)
+        if ((ModifierKeys & Keys.Control) == Keys.Control)
         {
-            int currentIndex = hoverlist.FindIndex(item => item == highlighted);
-            int found = currentIndex;
-            if (e.Delta > 0)
+            if (mode == EditorMode.Hover && highlighted >= 0 && hoverlist.Count > 0)
             {
-                currentIndex = (currentIndex + 1) % hoverlist.Count;
+                int currentIndex = hoverlist.FindIndex(item => item == highlighted);
+                int found = currentIndex;
+                if (e.Delta > 0)
+                {
+                    currentIndex = (currentIndex + 1) % hoverlist.Count;
+                }
+                else
+                {
+                    currentIndex--;
+                    if (currentIndex < 0) currentIndex += hoverlist.Count;
+                }
+                fixHighlight = true;
+                highlighted = hoverlist[currentIndex];
+                if (Parent != null)
+                {
+                    ((MainForm)Parent).DebugData(string.Format("Found:{0} Next:{1}", found, currentIndex));
+                }
+                Invalidate();
             }
-            else
-            {
-                currentIndex--;
-                if (currentIndex < 0) currentIndex += hoverlist.Count;
-            }
-            fixHighlight = true;
-            highlighted = hoverlist[currentIndex];
-            if (Parent != null)
-            {
-                ((MainForm)Parent).DebugData(string.Format("Found:{0} Next:{1}", found, currentIndex));
-            }
+        }
+        else
+        {
+            camera.Zoom(-e.Delta, cur);
             Invalidate();
         }
     }
