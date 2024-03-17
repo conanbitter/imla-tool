@@ -436,6 +436,11 @@ class LabelEditor : Control
             showCross = false;
             Invalidate();
         }
+        if (mode == EditorMode.Hover)
+        {
+            highlighted = -1;
+            Invalidate();
+        }
     }
 
     protected override void OnMouseEnter(EventArgs e)
