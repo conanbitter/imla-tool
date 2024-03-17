@@ -49,14 +49,16 @@ struct Rect
 
     private const int border = 6;
 
-    public readonly CornerMask GetCornerMask(int x, int y)
+    public readonly CornerMask GetCornerMask(int x, int y, Camera cam)
     {
         CornerMask result;
-        result.x1 = (x >= p1.x - border) && (x <= p1.x + border) && (y >= p1.y - border) && (y <= p2.y + border);
-        result.x2 = (x >= p2.x - border) && (x <= p2.x + border) && (y >= p1.y - border) && (y <= p2.y + border);
-        result.y1 = (y >= p1.y - border) && (y <= p1.y + border) && (x >= p1.x - border) && (x <= p2.x + border);
-        result.y2 = (y >= p2.y - border) && (y <= p2.y + border) && (x >= p1.x - border) && (x <= p2.x + border);
-        if ((x > p1.x + border) && (x < p2.x - border) && (y > p1.y + border) && (y < p2.y - border))
+        Vec2D sp1 = cam.WorldToScreen(p1);
+        Vec2D sp2 = cam.WorldToScreen(p2);
+        result.x1 = (x >= sp1.x - border) && (x <= sp1.x + border) && (y >= sp1.y - border) && (y <= sp2.y + border);
+        result.x2 = (x >= sp2.x - border) && (x <= sp2.x + border) && (y >= sp1.y - border) && (y <= sp2.y + border);
+        result.y1 = (y >= sp1.y - border) && (y <= sp1.y + border) && (x >= sp1.x - border) && (x <= sp2.x + border);
+        result.y2 = (y >= sp2.y - border) && (y <= sp2.y + border) && (x >= sp1.x - border) && (x <= sp2.x + border);
+        if ((x > sp1.x + border) && (x < sp2.x - border) && (y > sp1.y + border) && (y < sp2.y - border))
         {
             result.x1 = true;
             result.x2 = true;
@@ -117,6 +119,7 @@ class LabelEditor : Control
     private bool isDragging = false;
     private int oldX;
     private int oldY;
+    private Vec2D oldPos = new();
     private CornerMask mask;
     private Rect tempRect;
     private int selected;
@@ -159,6 +162,7 @@ class LabelEditor : Control
 
     private void DrawCross(Vec2D point, PaintEventArgs e)
     {
+        point = camera.WorldToScreen(point);
         e.Graphics.DrawLine(pen, point.x, e.ClipRectangle.Top, point.x, e.ClipRectangle.Bottom);
         e.Graphics.DrawLine(pen, e.ClipRectangle.Left, point.y, e.ClipRectangle.Right, point.y);
         e.Graphics.DrawEllipse(pen, point.x - 3, point.y - 3, 6, 6);
@@ -270,19 +274,19 @@ class LabelEditor : Control
     {
         base.OnMouseMove(e);
         bool needsInvalidation = false;
+        cur = camera.ScreenToWorld(new Vec2D(e.X, e.Y));
         switch (mode)
         {
             case EditorMode.Create:
                 {
                     if (isFirstPoint)
                     {
-                        p1.x = e.X;
-                        p1.y = e.Y;
+                        p1 = camera.ScreenToWorld(new Vec2D(e.X, e.Y));
+
                     }
                     else
                     {
-                        p2.x = e.X;
-                        p2.y = e.Y;
+                        p2 = camera.ScreenToWorld(new Vec2D(e.X, e.Y));
 
                         tempRect.p1 = p1;
                         tempRect.p2 = p2;
@@ -293,12 +297,10 @@ class LabelEditor : Control
                 break;
             case EditorMode.Hover:
                 {
-                    cur.x = e.X;
-                    cur.y = e.Y;
                     hoverlist.Clear();
                     for (int i = 0; i < rects.Count; i++)
                     {
-                        if (rects[i].rect.IsInside(e.X, e.Y))
+                        if (rects[i].rect.IsInside(cur.x, cur.y))
                         {
                             //highlighted = i;
                             //break;
@@ -308,7 +310,7 @@ class LabelEditor : Control
                     /*if(!fixHighlight){
                         highlighted = -1;
                     }*/
-                    if (fixHighlight && highlighted >= 0 && !rects[highlighted].rect.IsInside(e.X, e.Y))
+                    if (fixHighlight && highlighted >= 0 && !rects[highlighted].rect.IsInside(cur.x, cur.y))
                     {
                         fixHighlight = false;
                     }
@@ -316,7 +318,7 @@ class LabelEditor : Control
                     {
                         if (!fixHighlight)
                         {
-                            highlighted = hoverlist[hoverlist.Count - 1];
+                            highlighted = hoverlist[^1];
                         }
                     }
                     else
@@ -328,14 +330,16 @@ class LabelEditor : Control
                 break;
             case EditorMode.Edit:
                 {
+                    Vec2D newPos = camera.ScreenToWorld(new Vec2D(e.X, e.Y));
                     if (isDragging)
                     {
-                        tempRect = rects[selected].rect.Move(new Vec2D(e.X - oldX, e.Y - oldY), mask);
+                        Vec2D move = new(newPos.x - oldPos.x, newPos.y - oldPos.y);//new Vec2D((e.X - oldX) * camera.scale, (e.Y - oldY) * camera.scale);
+                        tempRect = rects[selected].rect.Move(move, mask);
                         needsInvalidation = true;
                     }
                     else
                     {
-                        Cursor = rects[selected].rect.GetCornerMask(e.X, e.Y).GetCursor();
+                        Cursor = rects[selected].rect.GetCornerMask(e.X, e.Y, camera).GetCursor();
                     }
                 }
                 break;
@@ -384,10 +388,11 @@ class LabelEditor : Control
                     break;
                 case EditorMode.Edit:
                     {
-                        mask = rects[selected].rect.GetCornerMask(e.X, e.Y);
+                        mask = rects[selected].rect.GetCornerMask(e.X, e.Y, camera);
                         if (mask.IsNotEmpty())
                         {
                             isDragging = true;
+                            oldPos = camera.ScreenToWorld(new Vec2D(e.X, e.Y));
                             oldX = e.X;
                             oldY = e.Y;
                             tempRect = rects[selected].rect;
