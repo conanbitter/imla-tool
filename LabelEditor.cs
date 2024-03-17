@@ -133,8 +133,7 @@ class LabelEditor : Control
 
     public void CreateNew()
     {
-        mode = EditorMode.Create;
-        isFirstPoint = true;
+        ChangeMode(EditorMode.Create);
     }
 
     private void DrawRect(Rect rect, PaintEventArgs e, bool fill = true)
@@ -148,6 +147,33 @@ class LabelEditor : Control
         e.Graphics.DrawLine(pen, point.x, e.ClipRectangle.Top, point.x, e.ClipRectangle.Bottom);
         e.Graphics.DrawLine(pen, e.ClipRectangle.Left, point.y, e.ClipRectangle.Right, point.y);
         e.Graphics.DrawEllipse(pen, point.x - 3, point.y - 3, 6, 6);
+    }
+
+    private void ChangeMode(EditorMode newMode)
+    {
+        switch (newMode)
+        {
+            case EditorMode.Create:
+                isFirstPoint = true;
+                p1 = cur;
+                break;
+            case EditorMode.Hover:
+                highlighted = -1;
+                hoverlist.Clear();
+                fixHighlight = false;
+                break;
+            case EditorMode.Edit:
+                if (highlighted < 0 && highlighted >= rects.Count)
+                {
+                    MessageBox.Show("Wrong edit");
+                    return;
+                }
+                isDragging = false;
+                selected = highlighted;
+                break;
+        }
+        mode = newMode;
+        Invalidate();
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -317,16 +343,16 @@ class LabelEditor : Control
                         else
                         {
                             rects.Add(new LabelRect(tempRect));
-                            mode = EditorMode.Hover;
-                            Invalidate();
+                            ChangeMode(EditorMode.Hover);
                         }
                     }
                     break;
                 case EditorMode.Hover:
                     {
-                        selected = highlighted;
-                        mode = EditorMode.Edit;
-                        Invalidate();
+                        if (highlighted >= 0)
+                        {
+                            ChangeMode(EditorMode.Edit);
+                        }
                     }
                     break;
                 case EditorMode.Edit:
@@ -341,9 +367,7 @@ class LabelEditor : Control
                         }
                         else
                         {
-                            mode = EditorMode.Hover;
-                            highlighted = -1;
-                            Invalidate();
+                            ChangeMode(EditorMode.Hover);
                         }
                     }
                     break;
