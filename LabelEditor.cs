@@ -106,14 +106,15 @@ enum EditorMode
 {
     Create,
     Hover,
-    Edit
+    Edit,
+    Idle
 }
 
 class LabelEditor : Control
 {
     private Pen pen = new(Color.Red);
     private SolidBrush brush = new(Color.FromArgb(75, Color.Red));
-    private EditorMode mode = EditorMode.Hover;
+    private EditorMode mode = EditorMode.Idle;
     private Vec2D cur;
     //Edit
     private bool isDragging = false;
@@ -198,6 +199,11 @@ class LabelEditor : Control
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e);
+        if (mode == EditorMode.Idle)
+        {
+            e.Graphics.Clear(SystemColors.Control);
+            return;
+        }
         e.Graphics.Clear(Color.Black);
         switch (mode)
         {
@@ -273,6 +279,7 @@ class LabelEditor : Control
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
+        if (mode == EditorMode.Idle) return;
         bool needsInvalidation = false;
         cur = camera.ScreenToWorld(new Vec2D(e.X, e.Y));
         switch (mode)
@@ -361,6 +368,7 @@ class LabelEditor : Control
     protected override void OnMouseDown(MouseEventArgs e)
     {
         base.OnMouseDown(e);
+        if (mode == EditorMode.Idle) return;
         if (e.Button == MouseButtons.Left)
         {
             switch (mode)
@@ -417,6 +425,7 @@ class LabelEditor : Control
     protected override void OnMouseUp(MouseEventArgs e)
     {
         base.OnMouseUp(e);
+        if (mode == EditorMode.Idle) return;
         if (e.Button == MouseButtons.Left && mode == EditorMode.Edit && isDragging)
         {
             isDragging = false;
@@ -431,6 +440,7 @@ class LabelEditor : Control
     protected override void OnMouseLeave(EventArgs e)
     {
         base.OnMouseLeave(e);
+        if (mode == EditorMode.Idle) return;
         if (mode == EditorMode.Create)
         {
             showCross = false;
@@ -446,6 +456,7 @@ class LabelEditor : Control
     protected override void OnMouseEnter(EventArgs e)
     {
         base.OnMouseEnter(e);
+        if (mode == EditorMode.Idle) return;
         if (mode == EditorMode.Create)
         {
             showCross = true;
@@ -456,6 +467,7 @@ class LabelEditor : Control
     protected override void OnMouseWheel(MouseEventArgs e)
     {
         base.OnMouseWheel(e);
+        if (mode == EditorMode.Idle) return;
         if ((ModifierKeys & Keys.Control) == Keys.Control)
         {
             if (mode == EditorMode.Hover && highlighted >= 0 && hoverlist.Count > 0)
