@@ -30,7 +30,7 @@ partial class MainForm
         bCameraReset.Size = new Size(100, 40);
         bCameraReset.Location = new Point(30, 30);
         bCameraReset.Text = "Reset View";
-        bCameraReset.Click += (object sender, System.EventArgs e) => leEditor.CreateNew();
+        bCameraReset.Click += (object sender, System.EventArgs e) => leEditor.ShowAll();
         pToolBox.Controls.Add(bCameraReset);
 
         ofdOpen = new OpenFileDialog()
@@ -52,6 +52,7 @@ partial class MainForm
             {
                 leEditor.LoadImage(ofdOpen.FileName);
                 leEditor.ChangeMode(EditorMode.Hover);
+                leEditor.ShowAll();
             }
         };
         pToolBox.Controls.Add(bOpen);

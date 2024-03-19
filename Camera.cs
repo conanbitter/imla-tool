@@ -6,6 +6,7 @@ class Camera
     public float scale = 1.0f;
 
     private const float zoomSpeed = 1.1f;
+    private const int viewBorder = 5;
 
     private void AdjustOffset(Vec2D center, float ds)
     {
@@ -26,6 +27,19 @@ class Camera
         }
         AdjustOffset(center, ds);
         scale *= ds;
+    }
+
+    public void Fit(Rect bounds, int width, int height)
+    {
+        width -= viewBorder * 2;
+        height -= viewBorder * 2;
+        float boundsWidth = bounds.p2.x - bounds.p1.x;
+        float boundsHeight = bounds.p2.y - bounds.p1.y;
+        float newScaleX = width / boundsWidth;
+        float newScaleY = height / boundsHeight;
+        scale = float.Min(newScaleX, newScaleY);
+        offset.x = width / 2.0f - (bounds.p1.x + boundsWidth / 2) * scale + viewBorder;
+        offset.y = height / 2.0f - (bounds.p1.y + boundsHeight / 2) * scale + viewBorder;
     }
 
     public Vec2D WorldToScreen(Vec2D point)

@@ -166,6 +166,13 @@ class LabelEditor : Control
         imageSize.y = image.Height;
     }
 
+    public void ShowAll()
+    {
+        if (mode == EditorMode.Idle) return;
+        camera.Fit(GetBounds(), Size.Width, Size.Height);
+        Invalidate();
+    }
+
     private void DrawRect(Rect rect, PaintEventArgs e, bool fill = true)
     {
         Vec2D p1 = camera.WorldToScreen(rect.p1);
@@ -207,6 +214,31 @@ class LabelEditor : Control
         }
         mode = newMode;
         Invalidate();
+    }
+
+    private Rect GetBounds()
+    {
+        if (rects.Count == 0 && image == null) return new Rect() { p1 = new Vec2D(0.0f, 0.0f), p2 = new Vec2D(0.0f, 0.0f) };
+        Rect results = new()
+        {
+            p1 = new Vec2D(float.MaxValue, float.MaxValue),
+            p2 = new Vec2D(float.MinValue, float.MinValue),
+        };
+        foreach (LabelRect lr in rects)
+        {
+            if (lr.rect.p1.x < results.p1.x) results.p1.x = lr.rect.p1.x;
+            if (lr.rect.p1.y < results.p1.y) results.p1.y = lr.rect.p1.y;
+            if (lr.rect.p2.x > results.p2.x) results.p2.x = lr.rect.p2.x;
+            if (lr.rect.p2.y > results.p2.y) results.p2.y = lr.rect.p2.y;
+        }
+        if (image != null)
+        {
+            if (0.0f < results.p1.x) results.p1.x = 0.0f;
+            if (0.0f < results.p1.y) results.p1.y = 0.0f;
+            if (imageSize.x > results.p2.x) results.p2.x = imageSize.x;
+            if (imageSize.y > results.p2.y) results.p2.y = imageSize.y;
+        }
+        return results;
     }
 
     protected override void OnPaint(PaintEventArgs e)
