@@ -139,6 +139,8 @@ class LabelEditor : Control
     private int camOldY;
     private Vec2D oldOffset;
     private bool isPanning;
+    private bool initialResize = true;
+    private Size oldSize = Size.Empty;
     //Image
     private Image? image;
     private Vec2D imageSize;
@@ -407,8 +409,10 @@ class LabelEditor : Control
         }
         if (isPanning)
         {
-            camera.offset.x = oldOffset.x + e.X - camOldX;
-            camera.offset.y = oldOffset.y + e.Y - camOldY;
+            camera.offset = new Vec2D(
+                oldOffset.x + e.X - camOldX,
+                oldOffset.y + e.Y - camOldY
+            );
             needsInvalidation = true;
             //MessageBox.Show("drf");
         }
@@ -549,6 +553,29 @@ class LabelEditor : Control
         {
             camera.Zoom(e.Delta, cur);
             Invalidate();
+        }
+    }
+
+    protected override void OnResize(EventArgs e)
+    {
+        base.OnResize(e);
+        if (initialResize)
+        {
+            initialResize = false;
+            oldSize = Size;
+        }
+        else
+        {
+            if (camera.wasFitted)
+            {
+                ShowAll();
+            }
+            else
+            {
+                camera.Resize(oldSize.Width, oldSize.Height, Size.Width, Size.Height);
+                Invalidate();
+            }
+            oldSize = Size;
         }
     }
 }
