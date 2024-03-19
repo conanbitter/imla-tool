@@ -139,6 +139,9 @@ class LabelEditor : Control
     private int camOldY;
     private Vec2D oldOffset;
     private bool isPanning;
+    //Image
+    private Image? image;
+    private Vec2D imageSize;
 
     private List<LabelRect> rects = new();
 
@@ -150,7 +153,17 @@ class LabelEditor : Control
 
     public void CreateNew()
     {
-        ChangeMode(EditorMode.Create);
+        if (mode == EditorMode.Hover)
+        {
+            ChangeMode(EditorMode.Create);
+        }
+    }
+
+    public void LoadImage(string filename)
+    {
+        image = Image.FromFile(filename);
+        imageSize.x = image.Width;
+        imageSize.y = image.Height;
     }
 
     private void DrawRect(Rect rect, PaintEventArgs e, bool fill = true)
@@ -169,7 +182,7 @@ class LabelEditor : Control
         e.Graphics.DrawEllipse(pen, point.x - 3, point.y - 3, 6, 6);
     }
 
-    private void ChangeMode(EditorMode newMode)
+    public void ChangeMode(EditorMode newMode)
     {
         switch (newMode)
         {
@@ -199,12 +212,20 @@ class LabelEditor : Control
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e);
+        e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
         if (mode == EditorMode.Idle)
         {
             e.Graphics.Clear(SystemColors.Control);
             return;
         }
         e.Graphics.Clear(Color.Black);
+        if (image != null)
+        {
+            Vec2D p1 = camera.WorldToScreen(new Vec2D(0.0f, 0.0f));
+            Vec2D p2 = camera.WorldToScreen(imageSize);
+            RectangleF dest = new RectangleF(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+            e.Graphics.DrawImage(image, dest);
+        }
         switch (mode)
         {
             case EditorMode.Create:
@@ -494,7 +515,7 @@ class LabelEditor : Control
         }
         else
         {
-            camera.Zoom(-e.Delta, cur);
+            camera.Zoom(e.Delta, cur);
             Invalidate();
         }
     }
