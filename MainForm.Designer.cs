@@ -7,6 +7,7 @@ partial class MainForm
     private Button bCameraReset;
     private Button bOpen;
     private OpenFileDialog ofdOpen;
+    private LabelList llList;
 
     private void InitializeComponent()
     {
@@ -16,6 +17,15 @@ partial class MainForm
         this.StartPosition = FormStartPosition.CenterScreen;
         this.Text = "ImLa Tool";
         this.Name = "ImLa Tool";
+
+        llList = new LabelList();
+        llList.Dock = DockStyle.Top;
+        llList.AutoSize = true;
+        this.Controls.Add(llList);
+        llList.AddLabel("Cat", Color.FromArgb(0xFF9800));
+        llList.AddLabel("Dog little", Color.FromArgb(0x43A047));
+        llList.AddLabel("Dog big", Color.FromArgb(0x673AB7));
+        llList.AddLabel("Bird", Color.FromArgb(0xA1887F));
 
         leEditor = new LabelEditor();
         leEditor.Dock = DockStyle.Fill;
@@ -53,6 +63,7 @@ partial class MainForm
                 leEditor.LoadImage(ofdOpen.FileName);
                 leEditor.ChangeMode(EditorMode.Hover);
                 leEditor.ShowAll();
+                llList.ClearSelection();
             }
         };
         pToolBox.Controls.Add(bOpen);
