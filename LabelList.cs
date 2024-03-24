@@ -1,5 +1,7 @@
 namespace imlatool;
 
+public delegate void ClassChangedEventHandler(object sender, int newIndex);
+
 class LabelClass
 {
     public string name = "";
@@ -20,6 +22,10 @@ class LabelClass
 class LabelList : FlowLayoutPanel
 {
     public List<LabelClass> labels = new List<LabelClass>();
+    public int selected;
+    private bool internalSelection = false;
+
+    public event ClassChangedEventHandler? ClassChanged;
 
     public void Clear()
     {
@@ -27,9 +33,30 @@ class LabelList : FlowLayoutPanel
         labels.Clear();
     }
 
+    public void ClassSelected(int index)
+    {
+        if (internalSelection) return;
+        ClassChanged?.Invoke(this, index);
+    }
+
     public void SelectClass(int index)
     {
-        MessageBox.Show("Selected " + index.ToString());
+        if (index < 0 || index >= labels.Count) return;
+        SetSelected(index);
+        ClassSelected(index);
+    }
+
+    public void SetSelected(int index)
+    {
+        if (index < 0 || index >= labels.Count) return;
+        internalSelection = true;
+        for (int i = 0; i < labels.Count; i++)
+        {
+            labels[i].button.Checked = i == index;
+        }
+        labels[index].button.Focus();
+        internalSelection = false;
+        selected = index;
     }
 
     public void AddLabel(string name, Color color)
@@ -46,14 +73,16 @@ class LabelList : FlowLayoutPanel
             Appearance = Appearance.Button,
             TextImageRelation = TextImageRelation.ImageBeforeText,
             AutoSize = true,
-            Image = icon
+            Image = icon,
+            TabStop = false
         };
         Controls.Add(newRb);
         newRb.CheckedChanged += (object? sender, EventArgs e) =>
         {
             if (((RadioButton?)sender)?.Checked ?? false)
             {
-                SelectClass(index);
+                selected = index;
+                ClassSelected(index);
             }
         };
 
