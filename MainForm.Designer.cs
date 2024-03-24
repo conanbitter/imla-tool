@@ -27,7 +27,7 @@ partial class MainForm
         llList.AddLabel("Dog big", Color.FromArgb(0x673AB7));
         llList.AddLabel("Bird", Color.FromArgb(0xA1887F));
 
-        leEditor = new LabelEditor();
+        leEditor = new LabelEditor(llList);
         leEditor.Dock = DockStyle.Fill;
         this.Controls.Add(leEditor);
 

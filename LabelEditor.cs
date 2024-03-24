@@ -95,10 +95,12 @@ struct Rect
 class LabelRect
 {
     public Rect rect;
+    public int labelClass;
 
-    public LabelRect(Rect rect)
+    public LabelRect(Rect rect, int labelClass)
     {
         this.rect = rect;
+        this.labelClass = labelClass;
     }
 }
 
@@ -123,6 +125,7 @@ class LabelEditor : Control
     private Vec2D oldPos = new();
     private CornerMask mask;
     private Rect tempRect;
+    private int tempClass;
     private int selected;
     //Create
     private bool isFirstPoint = true;
@@ -144,12 +147,15 @@ class LabelEditor : Control
     //Image
     private Image? image;
     private Vec2D imageSize;
+    //LabelList
+    private LabelList labelList;
 
     private List<LabelRect> rects = new();
 
-
-    public LabelEditor()
+    public LabelEditor(LabelList list)
     {
+        labelList = list;
+        labelList.ClassChanged += ClassSelected;
         DoubleBuffered = true;
     }
 
@@ -175,17 +181,46 @@ class LabelEditor : Control
         Invalidate();
     }
 
-    private void DrawRect(Rect rect, PaintEventArgs e, bool fill = true)
+    private void ClassSelected(object sender, int newIndex)
+    {
+        switch (mode)
+        {
+            case EditorMode.Hover:
+                ChangeMode(EditorMode.Create);
+                break;
+            case EditorMode.Create:
+                tempClass = newIndex;
+                Invalidate();
+                break;
+            case EditorMode.Edit:
+                rects[selected].labelClass = newIndex;
+                Invalidate();
+                break;
+        }
+    }
+
+    private void DrawRect(Rect rect, PaintEventArgs e, Color color)
     {
         Vec2D p1 = camera.WorldToScreen(rect.p1);
         Vec2D p2 = camera.WorldToScreen(rect.p2);
-        if (fill) e.Graphics.FillRectangle(brush, p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+        pen.Color = color;
         e.Graphics.DrawRectangle(pen, p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
     }
 
-    private void DrawCross(Vec2D point, PaintEventArgs e)
+    private void FillRect(Rect rect, PaintEventArgs e, Color color, Color fillColor)
+    {
+        Vec2D p1 = camera.WorldToScreen(rect.p1);
+        Vec2D p2 = camera.WorldToScreen(rect.p2);
+        pen.Color = color;
+        brush.Color = fillColor;
+        e.Graphics.FillRectangle(brush, p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+        e.Graphics.DrawRectangle(pen, p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+    }
+
+    private void DrawCross(Vec2D point, PaintEventArgs e, Color color)
     {
         point = camera.WorldToScreen(point);
+        pen.Color = color;
         e.Graphics.DrawLine(pen, point.x, e.ClipRectangle.Top, point.x, e.ClipRectangle.Bottom);
         e.Graphics.DrawLine(pen, e.ClipRectangle.Left, point.y, e.ClipRectangle.Right, point.y);
         e.Graphics.DrawEllipse(pen, point.x - 3, point.y - 3, 6, 6);
@@ -198,11 +233,13 @@ class LabelEditor : Control
             case EditorMode.Create:
                 isFirstPoint = true;
                 p1 = cur;
+                tempClass = labelList.selected;
                 break;
             case EditorMode.Hover:
                 highlighted = -1;
                 hoverlist.Clear();
                 fixHighlight = false;
+                labelList.ClearSelection();
                 break;
             case EditorMode.Edit:
                 if (highlighted < 0 && highlighted >= rects.Count)
@@ -212,6 +249,7 @@ class LabelEditor : Control
                 }
                 isDragging = false;
                 selected = highlighted;
+                labelList.SetSelected(rects[selected].labelClass);
                 break;
         }
         mode = newMode;
@@ -266,16 +304,16 @@ class LabelEditor : Control
                 {
                     foreach (LabelRect r in rects)
                     {
-                        DrawRect(r.rect, e);
+                        FillRect(r.rect, e, labelList.labels[r.labelClass].mainColor, labelList.labels[r.labelClass].fadedColor);
                     }
                     if (isFirstPoint)
                     {
-                        if (showCross) DrawCross(p1, e);
+                        if (showCross) DrawCross(p1, e, labelList.labels[tempClass].mainColor);
                     }
                     else
                     {
-                        if (showCross) DrawCross(p2, e);
-                        DrawRect(tempRect, e);
+                        if (showCross) DrawCross(p2, e, labelList.labels[tempClass].mainColor);
+                        FillRect(tempRect, e, labelList.labels[tempClass].mainColor, labelList.labels[tempClass].fadedColor);
                     }
                     break;
                 }
@@ -291,12 +329,12 @@ class LabelEditor : Control
                         {
                             pen.Width = 1;
                         }*/
-                        DrawRect(rects[i].rect, e);
+                        FillRect(rects[i].rect, e, labelList.labels[rects[i].labelClass].mainColor, labelList.labels[rects[i].labelClass].fadedColor);
                     }
                     if (highlighted >= 0)
                     {
                         pen.Width = 3;
-                        DrawRect(rects[highlighted].rect, e);
+                        FillRect(rects[highlighted].rect, e, labelList.labels[rects[highlighted].labelClass].mainColor, labelList.labels[rects[highlighted].labelClass].fadedColor);
                         pen.Width = 1;
                     }
                     /*pen.Width = 3;
@@ -313,17 +351,17 @@ class LabelEditor : Control
                     {
                         if (i != selected)
                         {
-                            DrawRect(rects[i].rect, e);
+                            FillRect(rects[i].rect, e, labelList.labels[rects[i].labelClass].mainColor, labelList.labels[rects[i].labelClass].fadedColor);
                         }
 
                     }
                     if (isDragging)
                     {
-                        DrawRect(tempRect, e, false);
+                        DrawRect(tempRect, e, labelList.labels[rects[selected].labelClass].mainColor);
                     }
                     else
                     {
-                        DrawRect(rects[selected].rect, e, false);
+                        DrawRect(rects[selected].rect, e, labelList.labels[rects[selected].labelClass].mainColor);
                     }
                 }
                 break;
@@ -438,7 +476,7 @@ class LabelEditor : Control
                         }
                         else
                         {
-                            rects.Add(new LabelRect(tempRect));
+                            rects.Add(new LabelRect(tempRect, labelList.selected));
                             ChangeMode(EditorMode.Hover);
                         }
                     }

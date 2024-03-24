@@ -89,7 +89,7 @@ class LabelList : FlowLayoutPanel
         LabelClass newClass = new LabelClass(newRb, icon)
         {
             name = name,
-            mainColor = color,
+            mainColor = Color.FromArgb(255, color),
             fadedColor = Color.FromArgb(100, color),
             index = index
         };
@@ -102,6 +102,10 @@ class LabelList : FlowLayoutPanel
         foreach (LabelClass lc in labels)
         {
             lc.button.Checked = false;
+        }
+        if (Parent != null)
+        {
+            ((MainForm)Parent).ActiveControl = null;
         }
     }
 }
