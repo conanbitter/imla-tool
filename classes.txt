@@ -2,3 +2,4 @@ Test 1      #FF9800
 Label 2     #43A047
 Class some  #673AB7
 New label   #A1887F
+Label without color

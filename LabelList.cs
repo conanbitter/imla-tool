@@ -97,6 +97,36 @@ class LabelList : FlowLayoutPanel
         labels.Add(newClass);
     }
 
+    public void LoadFromFile(string filename)
+    {
+        Clear();
+        var lines = File.ReadLines(filename);
+        foreach (var line in lines)
+        {
+            if (line == "") continue;
+            string[] components = line.Split('#');
+            if (components.Length >= 1)
+            {
+                string name = components[0].Trim();
+                Color color = Color.Red;
+                if (components.Length > 1)
+                {
+                    string colorString = components[1].Trim();
+                    try
+                    {
+                        int colorInt = int.Parse(colorString, System.Globalization.NumberStyles.HexNumber);
+                        color = Color.FromArgb(colorInt);
+                    }
+                    catch
+                    {
+
+                    }
+                }
+                AddLabel(name, color);
+            }
+        }
+    }
+
     public void ClearSelection()
     {
         foreach (LabelClass lc in labels)

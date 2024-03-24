@@ -167,6 +167,14 @@ class LabelEditor : Control
         }
     }
 
+    public void ExitToHover()
+    {
+        if (mode != EditorMode.Idle && mode != EditorMode.Hover)
+        {
+            ChangeMode(EditorMode.Hover);
+        }
+    }
+
     public void LoadImage(string filename)
     {
         image = Image.FromFile(filename);

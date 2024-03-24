@@ -6,7 +6,9 @@ partial class MainForm
     private Panel pToolBox;
     private Button bCameraReset;
     private Button bOpen;
-    private OpenFileDialog ofdOpen;
+    private Button bLoadClasses;
+    private OpenFileDialog ofdOpenImage;
+    private OpenFileDialog ofdOpenClasses;
     private LabelList llList;
 
     private void InitializeComponent()
@@ -43,7 +45,7 @@ partial class MainForm
         bCameraReset.Click += (object sender, System.EventArgs e) => leEditor.ShowAll();
         pToolBox.Controls.Add(bCameraReset);
 
-        ofdOpen = new OpenFileDialog()
+        ofdOpenImage = new OpenFileDialog()
         {
 
             Filter = "All image fomats|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tif;*.tiff|PNG image (*.png)|*.png|JPEG image (*.jpg;*.jpeg)|*.jpg;*.jpeg|BMP image (*.bmp)|*.bmp|GIF image (*.gif)|*.gif|TIFF image (*.tif;*.tiff)|*.tif;*.tiff",
@@ -58,15 +60,40 @@ partial class MainForm
         bOpen.Text = "Open ...";
         bOpen.Click += (object sender, System.EventArgs e) =>
         {
-            if (ofdOpen.ShowDialog() == DialogResult.OK)
+            if (ofdOpenImage.ShowDialog() == DialogResult.OK)
             {
-                leEditor.LoadImage(ofdOpen.FileName);
+                leEditor.LoadImage(ofdOpenImage.FileName);
                 leEditor.ChangeMode(EditorMode.Hover);
                 leEditor.ShowAll();
                 llList.ClearSelection();
             }
         };
         pToolBox.Controls.Add(bOpen);
+
+        ofdOpenClasses = new OpenFileDialog()
+        {
+
+            Filter = "Classes list (*.txt)|*.txt",
+            Title = "Load classes",
+            CheckFileExists = true,
+            CheckPathExists = true,
+        };
+
+        bLoadClasses = new Button();
+        bLoadClasses.Size = new Size(100, 40);
+        bLoadClasses.Location = new Point(30, 110);
+        bLoadClasses.Text = "Load classes ...";
+        bLoadClasses.Click += (object sender, System.EventArgs e) =>
+        {
+            if (ofdOpenClasses.ShowDialog() == DialogResult.OK)
+            {
+                llList.LoadFromFile(ofdOpenClasses.FileName);
+                leEditor.ExitToHover();
+                llList.ClearSelection();
+            }
+        };
+        pToolBox.Controls.Add(bLoadClasses);
+
 
         this.ResumeLayout();
     }
