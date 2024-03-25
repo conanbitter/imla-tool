@@ -189,6 +189,15 @@ class LabelEditor : Control
         Invalidate();
     }
 
+    public void DeleteRect()
+    {
+        if (mode == EditorMode.Edit)
+        {
+            rects.RemoveAt(selected);
+            ChangeMode(EditorMode.Hover);
+        }
+    }
+
     private void ClassSelected(object sender, int newIndex)
     {
         switch (mode)
@@ -247,6 +256,7 @@ class LabelEditor : Control
                 highlighted = -1;
                 hoverlist.Clear();
                 fixHighlight = false;
+                Cursor = Cursors.Default;
                 labelList.ClearSelection();
                 break;
             case EditorMode.Edit:

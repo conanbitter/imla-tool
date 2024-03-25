@@ -49,6 +49,12 @@ public partial class MainForm : Form
             case Keys.D0:
                 selectedClass = 0;
                 break;
+            case Keys.Delete:
+                leEditor.DeleteRect();
+                break;
+            case Keys.Escape:
+                leEditor.ExitToHover();
+                break;
         }
         if ((ModifierKeys & Keys.Shift) == Keys.Shift)
         {
