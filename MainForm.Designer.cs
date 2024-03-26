@@ -7,6 +7,8 @@ partial class MainForm
     private Button bCameraReset;
     private Button bOpen;
     private Button bSave;
+    private Button bNext;
+    private Button bPrev;
     private Button bLoadClasses;
     private OpenFileDialog ofdOpenImage;
     private OpenFileDialog ofdOpenClasses;
@@ -101,6 +103,46 @@ partial class MainForm
             leEditor.SaveToFile(Path.ChangeExtension(filename, ".txt"));
         };
         pToolBox.Controls.Add(bSave);
+
+        bNext = new Button();
+        bNext.Size = new Size(50, 40);
+        bNext.Location = new Point(80, 190);
+        bNext.Text = "Next";
+        bNext.Click += (object sender, System.EventArgs e) =>
+        {
+            (List<string> files, int pos) = GetFilelist(filename);
+            if (files.Count > 1)
+            {
+                pos++;
+                if (pos >= files.Count)
+                {
+                    pos = 0;
+                }
+                LoadFile(files[pos]);
+            }
+        };
+        pToolBox.Controls.Add(bNext);
+
+        bPrev = new Button();
+        bPrev.Size = new Size(50, 40);
+        bPrev.Location = new Point(30, 190);
+        bPrev.Text = "Prev";
+        bPrev.Click += (object sender, System.EventArgs e) =>
+        {
+            (List<string> files, int pos) = GetFilelist(filename);
+            if (files.Count > 1)
+            {
+                pos--;
+                if (pos < 0)
+                {
+                    pos = files.Count - 1;
+                }
+                LoadFile(files[pos]);
+            }
+        };
+        pToolBox.Controls.Add(bPrev);
+
+
 
 
         this.ResumeLayout();

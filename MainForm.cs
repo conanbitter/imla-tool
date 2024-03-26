@@ -4,6 +4,24 @@ public partial class MainForm : Form
 {
     private string filename = "";
 
+    private static readonly string[] supportedExtentions = {
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".bmp",
+        ".gif",
+        ".tif",
+        ".tiff"
+    };
+
+    static (List<string>, int) GetFilelist(string name)
+    {
+        List<string> files = Directory.GetFiles(Path.GetDirectoryName(name) ?? "", "*.*")
+                .Where(file => supportedExtentions.Contains(Path.GetExtension(file))).ToList();
+        int pos = files.FindIndex(item => item == name);
+        return (files, pos);
+    }
+
 
     public MainForm()
     {
