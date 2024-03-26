@@ -374,16 +374,16 @@ class LabelEditor : Control
                 {
                     foreach (LabelRect r in rects)
                     {
-                        FillRect(r.rect, e, labelList.labels[r.labelClass].mainColor, labelList.labels[r.labelClass].fadedColor);
+                        FillRect(r.rect, e, labelList[r.labelClass].mainColor, labelList[r.labelClass].fadedColor);
                     }
                     if (isFirstPoint)
                     {
-                        if (showCross) DrawCross(p1, e, labelList.labels[tempClass].mainColor);
+                        if (showCross) DrawCross(p1, e, labelList[tempClass].mainColor);
                     }
                     else
                     {
-                        if (showCross) DrawCross(p2, e, labelList.labels[tempClass].mainColor);
-                        FillRect(tempRect, e, labelList.labels[tempClass].mainColor, labelList.labels[tempClass].fadedColor);
+                        if (showCross) DrawCross(p2, e, labelList[tempClass].mainColor);
+                        FillRect(tempRect, e, labelList[tempClass].mainColor, labelList[tempClass].fadedColor);
                     }
                     break;
                 }
@@ -399,12 +399,12 @@ class LabelEditor : Control
                         {
                             pen.Width = 1;
                         }*/
-                        FillRect(rects[i].rect, e, labelList.labels[rects[i].labelClass].mainColor, labelList.labels[rects[i].labelClass].fadedColor);
+                        FillRect(rects[i].rect, e, labelList[rects[i].labelClass].mainColor, labelList[rects[i].labelClass].fadedColor);
                     }
                     if (highlighted >= 0)
                     {
                         pen.Width = 3;
-                        FillRect(rects[highlighted].rect, e, labelList.labels[rects[highlighted].labelClass].mainColor, labelList.labels[rects[highlighted].labelClass].fadedColor);
+                        FillRect(rects[highlighted].rect, e, labelList[rects[highlighted].labelClass].mainColor, labelList[rects[highlighted].labelClass].fadedColor);
                         pen.Width = 1;
                     }
                     /*pen.Width = 3;
@@ -421,17 +421,17 @@ class LabelEditor : Control
                     {
                         if (i != selected)
                         {
-                            FillRect(rects[i].rect, e, labelList.labels[rects[i].labelClass].mainColor, labelList.labels[rects[i].labelClass].fadedColor);
+                            FillRect(rects[i].rect, e, labelList[rects[i].labelClass].mainColor, labelList[rects[i].labelClass].fadedColor);
                         }
 
                     }
                     if (isDragging)
                     {
-                        DrawRect(tempRect, e, labelList.labels[rects[selected].labelClass].mainColor);
+                        DrawRect(tempRect, e, labelList[rects[selected].labelClass].mainColor);
                     }
                     else
                     {
-                        DrawRect(rects[selected].rect, e, labelList.labels[rects[selected].labelClass].mainColor);
+                        DrawRect(rects[selected].rect, e, labelList[rects[selected].labelClass].mainColor);
                     }
                 }
                 break;

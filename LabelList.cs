@@ -21,12 +21,34 @@ class LabelClass
 
 class LabelList : FlowLayoutPanel
 {
-    public List<LabelClass> labels = new List<LabelClass>();
+    private List<LabelClass> labels = new List<LabelClass>();
+    private readonly LabelClass unknown = new LabelClass(new RadioButton(), new Bitmap(1, 1))
+    {
+        name = "unknown",
+        mainColor = Color.FromArgb(255, 0, 0, 0),
+        fadedColor = Color.FromArgb(100, 0, 0, 0),
+        index = -1
+    };
     public int selected;
     private bool internalSelection = false;
     public bool isLoaded = false;
 
     public event ClassChangedEventHandler? ClassChanged;
+
+    public LabelClass this[int index]
+    {
+        get
+        {
+            if (index >= 0 && index < labels.Count)
+            {
+                return labels[index];
+            }
+            else
+            {
+                return unknown;
+            }
+        }
+    }
 
     public void Clear()
     {
