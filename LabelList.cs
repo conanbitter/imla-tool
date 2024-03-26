@@ -24,6 +24,7 @@ class LabelList : FlowLayoutPanel
     public List<LabelClass> labels = new List<LabelClass>();
     public int selected;
     private bool internalSelection = false;
+    public bool isLoaded = false;
 
     public event ClassChangedEventHandler? ClassChanged;
 
@@ -125,6 +126,7 @@ class LabelList : FlowLayoutPanel
                 AddLabel(name, color);
             }
         }
+        isLoaded = true;
     }
 
     public void ClearSelection()
