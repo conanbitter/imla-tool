@@ -6,6 +6,7 @@ partial class MainForm
     private Panel pToolBox;
     private Button bCameraReset;
     private Button bOpen;
+    private Button bSave;
     private Button bLoadClasses;
     private OpenFileDialog ofdOpenImage;
     private OpenFileDialog ofdOpenClasses;
@@ -62,10 +63,13 @@ partial class MainForm
         {
             if (ofdOpenImage.ShowDialog() == DialogResult.OK)
             {
-                leEditor.LoadImage(ofdOpenImage.FileName);
+                filename = ofdOpenImage.FileName;
+                leEditor.LoadImage(filename);
+                leEditor.LoadFromFile(Path.ChangeExtension(filename, ".txt"));
                 leEditor.ChangeMode(EditorMode.Hover);
                 leEditor.ShowAll();
                 llList.ClearSelection();
+                Text = Path.GetFileName(filename) + " - ImLa tool";
             }
         };
         pToolBox.Controls.Add(bOpen);
@@ -93,6 +97,16 @@ partial class MainForm
             }
         };
         pToolBox.Controls.Add(bLoadClasses);
+
+        bSave = new Button();
+        bSave.Size = new Size(100, 40);
+        bSave.Location = new Point(30, 150);
+        bSave.Text = "Save";
+        bSave.Click += (object sender, System.EventArgs e) =>
+        {
+            leEditor.SaveToFile(Path.ChangeExtension(filename, ".txt"));
+        };
+        pToolBox.Controls.Add(bSave);
 
 
         this.ResumeLayout();

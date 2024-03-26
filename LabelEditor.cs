@@ -198,6 +198,58 @@ class LabelEditor : Control
         }
     }
 
+    public void SaveToFile(string filename)
+    {
+        if (rects.Count == 0) return;
+        using (StreamWriter outfile = new StreamWriter(filename))
+        {
+            foreach (LabelRect lr in rects)
+            {
+                int classIndex = lr.labelClass;
+                float centerX = (lr.rect.p1.x + lr.rect.p2.x) / 2.0f / imageSize.x;
+                float centerY = (lr.rect.p1.y + lr.rect.p2.y) / 2.0f / imageSize.y;
+                float width = (lr.rect.p2.x - lr.rect.p1.x) / imageSize.x;
+                float height = (lr.rect.p2.y - lr.rect.p1.y) / imageSize.y;
+                outfile.WriteLine("{0} {1:F6} {2:F6} {3:F6} {4:F6}", classIndex, centerX, centerY, width, height);
+            }
+        }
+    }
+
+    public void LoadFromFile(string filename)
+    {
+        rects.Clear();
+        if (Path.Exists(filename))
+        {
+            var lines = File.ReadLines(filename);
+            foreach (var line in lines)
+            {
+                string[] numbers = line.Split();
+                if (numbers.Length != 5) continue;
+                int classIndex;
+                float centerX;
+                float centerY;
+                float width;
+                float height;
+                try
+                {
+                    classIndex = int.Parse(numbers[0]);
+                    centerX = float.Parse(numbers[1]);
+                    centerY = float.Parse(numbers[2]);
+                    width = float.Parse(numbers[3]);
+                    height = float.Parse(numbers[4]);
+                }
+                catch
+                {
+                    continue;
+                }
+                Vec2D p1 = new((centerX - width / 2.0f) * imageSize.x, (centerY - height / 2.0f) * imageSize.y);
+                Vec2D p2 = new((centerX + width / 2.0f) * imageSize.x, (centerY + height / 2.0f) * imageSize.y);
+                rects.Add(new LabelRect(new Rect() { p1 = p1, p2 = p2 }, classIndex));
+            }
+        }
+        Invalidate();
+    }
+
     private void ClassSelected(object sender, int newIndex)
     {
         switch (mode)

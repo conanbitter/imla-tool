@@ -2,10 +2,14 @@ namespace imlatool;
 
 public partial class MainForm : Form
 {
+    private string filename = "";
+
+
     public MainForm()
     {
         InitializeComponent();
         KeyPreview = true;
+        Application.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
     }
 
     public void DebugData(string data)
