@@ -9,6 +9,8 @@ partial class MainForm
     private Button bSave;
     private Button bNext;
     private Button bPrev;
+    private Button bNextUnlabeled;
+    private Button bPrevUnlabeled;
     private Button bLoadClasses;
     private OpenFileDialog ofdOpenImage;
     private OpenFileDialog ofdOpenClasses;
@@ -141,6 +143,64 @@ partial class MainForm
             }
         };
         pToolBox.Controls.Add(bPrev);
+
+        bNextUnlabeled = new Button();
+        bNextUnlabeled.Size = new Size(50, 40);
+        bNextUnlabeled.Location = new Point(80, 230);
+        bNextUnlabeled.Text = "NextU";
+        bNextUnlabeled.Click += (object sender, System.EventArgs e) =>
+        {
+            (List<string> files, int pos) = GetFilelist(filename);
+            if (files.Count > 1)
+            {
+                int oldpos = pos;
+                pos++;
+                while (pos != oldpos)
+                {
+                    if (pos >= files.Count)
+                    {
+                        pos = 0;
+                    }
+                    if (!Path.Exists(Path.ChangeExtension(files[pos], ".txt")))
+                    {
+                        LoadFile(files[pos]);
+                        break;
+                    }
+                    pos++;
+
+                }
+            }
+        };
+        pToolBox.Controls.Add(bNextUnlabeled);
+
+        bPrevUnlabeled = new Button();
+        bPrevUnlabeled.Size = new Size(50, 40);
+        bPrevUnlabeled.Location = new Point(30, 230);
+        bPrevUnlabeled.Text = "PrevU";
+        bPrevUnlabeled.Click += (object sender, System.EventArgs e) =>
+        {
+            (List<string> files, int pos) = GetFilelist(filename);
+            if (files.Count > 1)
+            {
+                int oldpos = pos;
+                pos--;
+                while (pos != oldpos)
+                {
+                    if (pos < 0)
+                    {
+                        pos = files.Count - 1;
+                    }
+                    if (!Path.Exists(Path.ChangeExtension(files[pos], ".txt")))
+                    {
+                        LoadFile(files[pos]);
+                        break;
+                    }
+                    pos--;
+
+                }
+            }
+        };
+        pToolBox.Controls.Add(bPrevUnlabeled);
 
 
 
