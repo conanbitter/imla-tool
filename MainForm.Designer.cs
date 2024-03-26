@@ -63,21 +63,7 @@ partial class MainForm
         {
             if (ofdOpenImage.ShowDialog() == DialogResult.OK)
             {
-                filename = ofdOpenImage.FileName;
-                if (!llList.isLoaded)
-                {
-                    string classesFile = Path.Combine(Path.GetDirectoryName(filename), "classes.txt");
-                    if (Path.Exists(classesFile))
-                    {
-                        llList.LoadFromFile(classesFile);
-                    }
-                }
-                leEditor.LoadImage(filename);
-                leEditor.LoadFromFile(Path.ChangeExtension(filename, ".txt"));
-                leEditor.ChangeMode(EditorMode.Hover);
-                leEditor.ShowAll();
-                llList.ClearSelection();
-                Text = Path.GetFileName(filename) + " - ImLa tool";
+                LoadFile(ofdOpenImage.FileName);
             }
         };
         pToolBox.Controls.Add(bOpen);

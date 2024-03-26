@@ -17,6 +17,25 @@ public partial class MainForm : Form
         Text = data;
     }
 
+    private void LoadFile(string name)
+    {
+        filename = name;
+        if (!llList.isLoaded)
+        {
+            string classesFile = Path.Combine(Path.GetDirectoryName(filename) ?? "", "classes.txt");
+            if (Path.Exists(classesFile))
+            {
+                llList.LoadFromFile(classesFile);
+            }
+        }
+        leEditor.LoadImage(filename);
+        leEditor.LoadFromFile(Path.ChangeExtension(filename, ".txt"));
+        leEditor.ChangeMode(EditorMode.Hover);
+        leEditor.ShowAll();
+        llList.ClearSelection();
+        Text = Path.GetFileName(filename) + " - ImLa tool";
+    }
+
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
