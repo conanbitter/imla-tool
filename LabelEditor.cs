@@ -156,6 +156,7 @@ class LabelEditor : Control
     {
         labelList = list;
         labelList.ClassChanged += ClassSelected;
+        labelList.ClassesUpdated += ClassesUpdated;
         DoubleBuffered = true;
     }
 
@@ -272,6 +273,28 @@ class LabelEditor : Control
         }
     }
 
+    private void ClassesUpdated(object sender)
+    {
+        if (
+                (mode == EditorMode.Create && (!labelList[tempClass].enabled)) ||
+                (mode == EditorMode.Edit && (!labelList[rects[selected].labelClass].enabled))
+                )
+        {
+            ExitToHover();
+            return;
+        }
+
+        if (mode == EditorMode.Hover && highlighted >= 0 && (!labelList[rects[highlighted].labelClass].enabled))
+        {
+            highlighted = -1;
+            fixHighlight = false;
+            hoverlist.Clear();
+            return;
+        }
+
+        Invalidate();
+    }
+
     private void DrawRect(Rect rect, PaintEventArgs e, Color color)
     {
         Vec2D p1 = camera.WorldToScreen(rect.p1);
@@ -378,7 +401,10 @@ class LabelEditor : Control
                 {
                     foreach (LabelRect r in rects)
                     {
-                        FillRect(r.rect, e, labelList[r.labelClass].mainColor, labelList[r.labelClass].fadedColor);
+                        if (labelList[r.labelClass].enabled)
+                        {
+                            FillRect(r.rect, e, labelList[r.labelClass].mainColor, labelList[r.labelClass].fadedColor);
+                        }
                     }
                     if (isFirstPoint)
                     {
@@ -403,9 +429,12 @@ class LabelEditor : Control
                         {
                             pen.Width = 1;
                         }*/
-                        FillRect(rects[i].rect, e, labelList[rects[i].labelClass].mainColor, labelList[rects[i].labelClass].fadedColor);
+                        if (labelList[rects[i].labelClass].enabled)
+                        {
+                            FillRect(rects[i].rect, e, labelList[rects[i].labelClass].mainColor, labelList[rects[i].labelClass].fadedColor);
+                        }
                     }
-                    if (highlighted >= 0)
+                    if (highlighted >= 0 && labelList[rects[highlighted].labelClass].enabled)
                     {
                         pen.Width = 3;
                         FillRect(rects[highlighted].rect, e, labelList[rects[highlighted].labelClass].mainColor, labelList[rects[highlighted].labelClass].fadedColor);
@@ -423,7 +452,7 @@ class LabelEditor : Control
                 {
                     for (int i = 0; i < rects.Count; i++)
                     {
-                        if (i != selected)
+                        if (i != selected && labelList[rects[i].labelClass].enabled)
                         {
                             FillRect(rects[i].rect, e, labelList[rects[i].labelClass].mainColor, labelList[rects[i].labelClass].fadedColor);
                         }
@@ -474,7 +503,7 @@ class LabelEditor : Control
                     hoverlist.Clear();
                     for (int i = 0; i < rects.Count; i++)
                     {
-                        if (rects[i].rect.IsInside(cur.x, cur.y))
+                        if (labelList[rects[i].labelClass].enabled && rects[i].rect.IsInside(cur.x, cur.y))
                         {
                             //highlighted = i;
                             //break;

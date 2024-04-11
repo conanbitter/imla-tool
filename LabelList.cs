@@ -1,12 +1,15 @@
 namespace imlatool;
 
 public delegate void ClassChangedEventHandler(object sender, int newIndex);
+public delegate void ClassesUpdatedEventHandler(object sender);
 
 class LabelClass
 {
     public string name = "";
     public Color mainColor = Color.Blue;
     public Color fadedColor = Color.FromArgb(100, Color.Blue);
+
+    public bool enabled = true;
 
     public RadioButton button;
     public Image icon;
@@ -34,6 +37,7 @@ class LabelList : FlowLayoutPanel
     public bool isLoaded = false;
 
     public event ClassChangedEventHandler? ClassChanged;
+    public event ClassesUpdatedEventHandler? ClassesUpdated;
 
     public LabelClass this[int index]
     {
@@ -64,14 +68,14 @@ class LabelList : FlowLayoutPanel
 
     public void SelectClass(int index)
     {
-        if (index < 0 || index >= labels.Count) return;
+        if (index < 0 || index >= labels.Count || (!labels[index].enabled)) return;
         SetSelected(index);
         ClassSelected(index);
     }
 
     public void SetSelected(int index)
     {
-        if (index < 0 || index >= labels.Count) return;
+        if (index < 0 || index >= labels.Count || (!labels[index].enabled)) return;
         internalSelection = true;
         for (int i = 0; i < labels.Count; i++)
         {
@@ -161,5 +165,13 @@ class LabelList : FlowLayoutPanel
         {
             ((MainForm)Parent).ActiveControl = null;
         }
+    }
+
+    public void ToggleClass(int index)
+    {
+        if (index < 0 || index >= labels.Count) return;
+        labels[index].enabled = !labels[index].enabled;
+        labels[index].button.Enabled = labels[index].enabled;
+        ClassesUpdated?.Invoke(this);
     }
 }

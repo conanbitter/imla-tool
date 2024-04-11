@@ -97,14 +97,22 @@ public partial class MainForm : Form
                 leEditor.ExitToHover();
                 break;
         }
-        if ((ModifierKeys & Keys.Shift) == Keys.Shift)
+        if ((ModifierKeys & Keys.Shift) == Keys.Shift && selectedClass >= 0)
         {
             selectedClass += 10;
         }
         selectedClass--;
-        if (selectedClass >= 0)
+
+        if ((ModifierKeys & Keys.Alt) == Keys.Alt)
         {
-            llList.SelectClass(selectedClass);
+            llList.ToggleClass(selectedClass);
+        }
+        else
+        {
+            if (selectedClass >= 0)
+            {
+                llList.SelectClass(selectedClass);
+            }
         }
     }
 }
