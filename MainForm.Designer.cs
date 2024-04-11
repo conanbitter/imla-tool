@@ -155,19 +155,23 @@ partial class MainForm
             {
                 int oldpos = pos;
                 pos++;
+                if (pos >= files.Count)
+                {
+                    pos = 0;
+                }
                 while (pos != oldpos)
                 {
-                    if (pos >= files.Count)
-                    {
-                        pos = 0;
-                    }
+
                     if (!Path.Exists(Path.ChangeExtension(files[pos], ".txt")))
                     {
                         LoadFile(files[pos]);
                         break;
                     }
                     pos++;
-
+                    if (pos >= files.Count)
+                    {
+                        pos = 0;
+                    }
                 }
             }
         };
@@ -184,19 +188,22 @@ partial class MainForm
             {
                 int oldpos = pos;
                 pos--;
+                if (pos < 0)
+                {
+                    pos = files.Count - 1;
+                }
                 while (pos != oldpos)
                 {
-                    if (pos < 0)
-                    {
-                        pos = files.Count - 1;
-                    }
                     if (!Path.Exists(Path.ChangeExtension(files[pos], ".txt")))
                     {
                         LoadFile(files[pos]);
                         break;
                     }
                     pos--;
-
+                    if (pos < 0)
+                    {
+                        pos = files.Count - 1;
+                    }
                 }
             }
         };
