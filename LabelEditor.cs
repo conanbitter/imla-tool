@@ -177,6 +177,10 @@ class LabelEditor : Control
 
     public void LoadImage(string filename)
     {
+        if (image != null)
+        {
+            image.Dispose();
+        }
         image = Image.FromFile(filename);
         imageSize.x = image.Width;
         imageSize.y = image.Height;
